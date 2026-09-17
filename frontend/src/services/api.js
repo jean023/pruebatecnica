@@ -1,9 +1,40 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
-export async function getHealthStatus() {
-  const response = await fetch(`${API_BASE_URL}/`);
+async function request(endpoint, options = {}) {
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
   if (!response.ok) {
-    throw new Error(`Error ${response.status}: ${response.statusText}`);
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data.detail || `Error ${response.status}: ${response.statusText}`);
   }
   return response.json();
+}
+
+export async function getHealthStatus() {
+  return request('/');
+}
+
+export async function registerUser(username, password) {
+  return request('/auth/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password }),
+  });
+}
+
+export async function loginUser(username, password) {
+  const formData = new URLSearchParams();
+  formData.append('username', username);
+  formData.append('password', password);
+
+  return request('/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: formData.toString(),
+  });
+}
+
+export async function getMe(token) {
+  return request('/auth/me', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
 }
