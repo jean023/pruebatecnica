@@ -38,3 +38,16 @@ export async function getMe(token) {
     headers: { Authorization: `Bearer ${token}` },
   });
 }
+
+export async function searchMovies(query, page = 1, token) {
+  const params = new URLSearchParams({ q: query, page: page.toString() });
+  return request(`/movies/search?${params.toString()}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function getMovieDetails(imdbId, token) {
+  return request(`/movies/${imdbId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
