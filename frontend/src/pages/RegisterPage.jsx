@@ -39,14 +39,14 @@ function RegisterPage({ onRegister, onSwitchToLogin, error: authError }) {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h1 className="auth-title">🎬 MoviesTech</h1>
-        <p className="auth-subtitle">Crea tu cuenta</p>
+        <h1 className="auth-title">MoviesTech</h1>
+        <p className="auth-subtitle">Crea tu cuenta de usuario</p>
 
         {success ? (
           <div className="auth-success">
-            <p>✅ Cuenta creada exitosamente</p>
+            <p>Cuenta creada exitosamente</p>
             <p style={{ fontSize: '0.9rem', color: '#8b949e' }}>
-              Redirigiendo al login...
+              Redirigiendo al inicio de sesión...
             </p>
           </div>
         ) : (
@@ -58,7 +58,7 @@ function RegisterPage({ onRegister, onSwitchToLogin, error: authError }) {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="Elige un nombre de usuario"
+                placeholder="Elige un usuario (mínimo 3 caracteres)"
                 required
                 autoFocus
                 minLength={3}
@@ -101,7 +101,7 @@ function RegisterPage({ onRegister, onSwitchToLogin, error: authError }) {
         <p className="auth-switch">
           ¿Ya tienes cuenta?{' '}
           <button type="button" onClick={onSwitchToLogin} className="auth-link">
-            Inicia sesión
+            Inicia sesión aquí
           </button>
         </p>
       </div>

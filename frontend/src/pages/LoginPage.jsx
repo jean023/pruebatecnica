@@ -24,7 +24,7 @@ function LoginPage({ onLogin, onSwitchToRegister, error: authError }) {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h1 className="auth-title">🎬 MoviesTech</h1>
+        <h1 className="auth-title">MoviesTech</h1>
         <p className="auth-subtitle">Inicia sesión en tu cuenta</p>
 
         <form onSubmit={handleSubmit} className="auth-form">
@@ -35,7 +35,7 @@ function LoginPage({ onLogin, onSwitchToRegister, error: authError }) {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="Tu nombre de usuario"
+              placeholder="Nombre de usuario"
               required
               autoFocus
             />
@@ -48,7 +48,7 @@ function LoginPage({ onLogin, onSwitchToRegister, error: authError }) {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Tu contraseña"
+              placeholder="Contraseña"
               required
             />
           </div>
@@ -63,7 +63,7 @@ function LoginPage({ onLogin, onSwitchToRegister, error: authError }) {
         <p className="auth-switch">
           ¿No tienes cuenta?{' '}
           <button type="button" onClick={onSwitchToRegister} className="auth-link">
-            Regístrate
+            Regístrate aquí
           </button>
         </p>
       </div>

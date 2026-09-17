@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.security import get_current_user
@@ -18,11 +18,22 @@ router = APIRouter(prefix="/favorites", tags=["favorites"])
 
 @router.get("", response_model=list[FavoriteResponse])
 def list_favorites(
+    sort_by: str = Query("fecha_agregado", regex="^(fecha_agregado|nota|anio|titulo)$", description="Campo para ordenar"),
+    order: str = Query("desc", regex="^(asc|desc)$", description="Dirección del orden (asc o desc)"),
+    min_nota: int | None = Query(None, ge=1, le=10, description="Filtrar por calificación mínima"),
+    q: str | None = Query(None, description="Buscar dentro de favoritas por título"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Lista todas las películas favoritas del usuario autenticado."""
-    return get_user_favorites(db=db, user_id=current_user.id)
+    """Lista las películas favoritas del usuario con opciones de filtrado y ordenamiento."""
+    return get_user_favorites(
+        db=db,
+        user_id=current_user.id,
+        sort_by=sort_by,
+        order=order,
+        min_nota=min_nota,
+        q=q,
+    )
 
 
 @router.post("", response_model=FavoriteResponse, status_code=status.HTTP_201_CREATED)

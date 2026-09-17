@@ -1,70 +1,69 @@
-# 🎬 MoviesTech
+# MoviesTech - Prueba Tecnica Full Stack
 
-Plataforma web Full Stack para buscar películas a través de la API de OMDb y gestionar una colección personal de favoritas con calificaciones y notas privadas.
+Aplicacion web para buscar peliculas a traves de la API de OMDb y gestionar una lista personal de favoritas con calificaciones del 1 al 10.
 
 ---
 
-## 🏛️ Arquitectura
+## Arquitectura del Proyecto
 
-Monorepo con tres capas independientes desacopladas y orquestadas con Docker Compose:
+El proyecto esta organizado como un monorepo dividido en tres capas principales:
 
+```text
+Browser -> React (Vite) :5173 -> FastAPI (Uvicorn) :8000 -> PostgreSQL :5432
+                                        |
+                                    OMDb API
 ```
-Browser → React (Vite) :5173 → FastAPI (Uvicorn) :8000 → PostgreSQL :5432
-                                       ↓
-                                   OMDb API
-```
 
-- **Frontend**: React 18 + Vite — SPA interactiva con gestión de sesión y catálogo.
-- **Backend**: FastAPI + SQLAlchemy — API REST segura con autenticación JWT y cliente OMDb asíncrono.
-- **Base de datos**: PostgreSQL 16 — persistencia de usuarios y películas favoritas con integridad referencial.
+- **Frontend**: Single Page Application construida con React y Vite. Maneja el estado de autenticacion, consumo de la API REST, busqueda con paginacion y visualizacion de favoritas.
+- **Backend**: API REST construida con FastAPI y SQLAlchemy. Implementa autenticacion con JWT y contraseñas hasheadas con bcrypt, conexion a PostgreSQL y cliente HTTP asincrono para OMDb con cache en memoria.
+- **Base de Datos**: PostgreSQL 16 con tablas `users` y `favoritas`, llaves foraneas en cascada y restricciones de integridad.
+- **Infraestructura**: Orquestacion mediante Docker Compose para levantar todos los servicios en contenedores independientes.
 
 ---
 
-## 🛠️ Tecnologías
+## Stack Tecnologico
 
-| Capa | Tecnologías |
-|------|------------|
-| **Frontend** | React 18, Vite 5, JavaScript, CSS3 |
-| **Backend** | Python 3.12+, FastAPI, Uvicorn, SQLAlchemy, Pydantic, Passlib (Bcrypt), Python-Jose (JWT), HTTPX |
-| **Base de datos** | PostgreSQL 16 |
-| **Infraestructura** | Docker, Docker Compose |
+- **Frontend**: React 18, Vite, JavaScript, CSS3
+- **Backend**: Python 3.12, FastAPI, Uvicorn, SQLAlchemy, Pydantic, Passlib (bcrypt), python-jose (JWT), HTTPX, Pytest
+- **Base de Datos**: PostgreSQL 16
+- **Contenedores**: Docker, Docker Compose
 
 ---
 
-## 📁 Estructura del Proyecto
+## Estructura de Carpetas
 
 ```text
 moviestech/
 ├── backend/
 │   ├── app/
-│   │   ├── api/          # Routers (auth, movies, favorites, health)
-│   │   ├── core/         # Configuración y módulo de seguridad (JWT + bcrypt)
-│   │   ├── db/           # Conexión y sesión SQLAlchemy
+│   │   ├── api/          # Routers de FastAPI (auth, movies, favorites, health)
+│   │   ├── core/         # Configuracion con Pydantic Settings y seguridad (JWT/bcrypt)
+│   │   ├── db/           # Conexion a base de datos y sesion SQLAlchemy
 │   │   ├── models/       # Modelos ORM (User, Favorite)
-│   │   ├── schemas/      # Schemas Pydantic (request/response)
-│   │   ├── services/     # Lógica de negocio (auth, omdb, favorites)
-│   │   └── main.py       # Punto de entrada FastAPI + CORS + Routers
-│   ├── tests/            # Tests unitarios y de integración
-│   ├── requirements.txt
+│   │   ├── schemas/      # Validacion de datos con Pydantic
+│   │   ├── services/     # Logica de negocio y cliente OMDb
+│   │   └── main.py       # Punto de entrada de la aplicacion
+│   ├── tests/            # Pruebas automatizadas (pytest)
+│   ├── requirements.txt  # Dependencias de Python
 │   ├── Dockerfile
 │   └── .env.example
 │
 ├── frontend/
 │   ├── src/
-│   │   ├── components/   # SearchBar, MovieCard, FavoritesView
-│   │   ├── hooks/        # useAuth (gestión de sesión)
-│   │   ├── pages/        # LoginPage, RegisterPage, HomePage
-│   │   ├── services/     # api.js (cliente HTTP centralizado)
-│   │   ├── App.jsx       # Componente raíz con enrutamiento condicional
-│   │   ├── index.css     # Estilos modo oscuro
+│   │   ├── components/   # Componentes reutilizables (SearchBar, MovieCard, FavoritesView)
+│   │   ├── hooks/        # Custom hook useAuth para manejo de sesion
+│   │   ├── pages/        # Vistas principales (LoginPage, RegisterPage, HomePage)
+│   │   ├── services/     # Cliente HTTP para llamadas a la API
+│   │   ├── App.jsx       # Componente principal con enrutamiento condicional
+│   │   ├── index.css     # Estilos globales de la aplicacion
 │   │   └── main.jsx
 │   ├── package.json
-│   ├── vite.config.js     # Proxy de desarrollo
+│   ├── vite.config.js
 │   ├── Dockerfile
 │   └── .env.example
 │
 ├── database/
-│   └── schema.sql        # DDL para inicialización de PostgreSQL
+│   └── schema.sql        # Script DDL para inicializar tablas en PostgreSQL
 │
 ├── docker-compose.yml
 ├── .gitignore
@@ -73,9 +72,7 @@ moviestech/
 
 ---
 
-## ⚙️ Configuración y Variables de Entorno
-
-Puedes configurar tus variables en los archivos `.env`:
+## Variables de Entorno
 
 ### Backend (`backend/.env`)
 
@@ -87,25 +84,31 @@ JWT_EXPIRATION_MINUTES=60
 OMDB_API_KEY=2e5d578c
 ```
 
+### Frontend (`frontend/.env`)
+
+```env
+VITE_API_URL=http://localhost:8000
+```
+
 ---
 
-## 🚀 Cómo Ejecutar con Docker
+## Como Ejecutar el Proyecto con Docker
 
-1. Inicia **Docker Desktop** en tu equipo.
-2. Construye y levanta los servicios:
+1. Iniciar Docker Desktop.
+2. En la raiz del proyecto ejecutar:
 
 ```bash
 docker compose up --build
 ```
 
-3. Accede a los servicios:
+3. Acceder a los servicios disponibles:
 
-| Servicio | URL | Descripción |
+| Servicio | URL | Descripcion |
 |----------|-----|-------------|
-| **Frontend** | [http://localhost:5173](http://localhost:5173) | Aplicación web React |
-| **API Docs (Swagger)** | [http://localhost:8000/docs](http://localhost:8000/docs) | Documentación interactiva de la API |
-| **Backend Health** | [http://localhost:8000/health](http://localhost:8000/health) | Chequeo de estado |
-| **PostgreSQL** | `localhost:5432` | Base de datos |
+| Frontend | http://localhost:5173 | Aplicacion web en React |
+| Backend Docs | http://localhost:8000/docs | Documentacion interactiva Swagger |
+| Healthcheck | http://localhost:8000/health | Estado del servidor |
+| Base de datos | localhost:5432 | PostgreSQL |
 
 Para detener los contenedores:
 
@@ -115,15 +118,36 @@ docker compose down
 
 ---
 
-## ✨ Funcionalidades Implementadas
+## Funcionalidades Desarrolladas
 
-- [x] **Autenticación Completa**: Registro y login con contraseñas encriptadas (`bcrypt`) y tokens `JWT`.
-- [x] **Buscador de Películas**: Búsqueda en tiempo real conectada a la API oficial de OMDb con paginación de resultados.
-- [x] **Catálogo Visual**: Tarjetas interactivas con pósters, año, ID de IMDb y badge de tipo.
-- [x] **CRUD de Favoritas**:
-  - Agregar películas a tu colección personal con 1 clic.
-  - Listar tus películas favoritas en una vista dedicada.
-  - Asignar y editar tu calificación personal del **1 al 10**.
-  - Eliminar películas de favoritas.
-- [x] **Protección de Rutas**: Endpoints asegurados que validan el token de autorización del usuario.
-- [x] **Tests Automatizados**: Cobertura de tests unitarios para autenticación, búsqueda y favoritas en `backend/tests/`.
+1. **Autenticacion de Usuarios**:
+   - Registro de usuarios con validacion de nombre unico.
+   - Hashing seguro de contraseñas con `bcrypt`.
+   - Inicio de sesion y generacion de tokens `JWT` (OAuth2 Bearer).
+   - Endpoint protegido `/auth/me` y persistencia de sesion en `localStorage`.
+
+2. **Buscador de Peliculas**:
+   - Consumo asincrono de la API externa de OMDb.
+   - Paginacion tradicional (Anterior / Siguiente) y opcion de "Cargar mas" (+10 peliculas).
+   - Cache en memoria con TTL de 30 minutos para evitar consultas repetidas y optimizar el uso de la API externa.
+   - Control de errores ante caidas o limite de peticiones de OMDb (HTTP 429 / 504).
+
+3. **Gestion de Favoritas (CRUD)**:
+   - Agregar peliculas a favoritas vinculadas al usuario autenticado.
+   - Listar peliculas favoritas con filtros y ordenamiento:
+     - Ordenar por: fecha de agregado, nota personal, año de estreno, titulo (A-Z).
+     - Filtrar por: calificacion minima (ej. nota 7+, 8+, 9+) o busqueda por texto.
+   - Editar calificacion personal (1 a 10) con persistencia en base de datos.
+   - Eliminar peliculas de la lista de favoritas.
+
+4. **Pruebas Automatizadas**:
+   - Tests de autenticacion (`test_auth.py`).
+   - Tests de integracion simulando OMDb con mocks y verificacion de cache (`test_movies.py`).
+   - Tests de CRUD, filtros y ordenamiento en favoritas (`test_favorites.py`).
+   - Test de endpoints base de salud (`test_health.py`).
+
+Para ejecutar las pruebas:
+
+```bash
+pytest backend/tests
+```

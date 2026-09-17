@@ -17,7 +17,6 @@ function SearchBar({ onSearch, initialValue = '', loading = false }) {
   return (
     <form onSubmit={handleSubmit} className="search-bar-form">
       <div className="search-input-wrapper">
-        <span className="search-icon">🔍</span>
         <input
           type="text"
           value={query}

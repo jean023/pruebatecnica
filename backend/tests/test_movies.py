@@ -7,6 +7,7 @@ from sqlalchemy.pool import StaticPool
 from app.db.session import Base, get_db
 from app.main import app
 from app.schemas.movie import MovieDetail, MovieItem, MovieSearchResponse
+from app.services.omdb import _search_cache, _detail_cache
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 
@@ -35,11 +36,11 @@ client = TestClient(app)
 def get_authenticated_token():
     client.post(
         "/auth/register",
-        json={"username": "moviesearcher", "password": "password123"},
+        json={"username": "moviesearcher2", "password": "password123"},
     )
     login_res = client.post(
         "/auth/login",
-        data={"username": "moviesearcher", "password": "password123"},
+        data={"username": "moviesearcher2", "password": "password123"},
     )
     return login_res.json()["access_token"]
 
@@ -49,33 +50,44 @@ def test_search_movies_unauthorized():
     assert response.status_code == 401
 
 
-@patch("app.api.movies.search_movies", new_callable=AsyncMock)
-def test_search_movies_success(mock_search):
-    mock_search.return_value = MovieSearchResponse(
-        movies=[
-            MovieItem(
-                imdb_id="tt0372784",
-                title="Batman Begins",
-                year="2005",
-                poster="https://example.com/poster.jpg",
-                type="movie",
-            )
+@patch("app.services.omdb.httpx.AsyncClient.get")
+def test_search_movies_with_cache(mock_get):
+    _search_cache.clear()
+    
+    mock_response = AsyncMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {
+        "Response": "True",
+        "Search": [
+            {
+                "Title": "The Matrix",
+                "Year": "1999",
+                "imdbID": "tt0133093",
+                "Type": "movie",
+                "Poster": "https://example.com/matrix.jpg",
+            }
         ],
-        total_results=1,
-        page=1,
-        total_pages=1,
-    )
+        "totalResults": "1",
+    }
+    mock_response.raise_for_status = lambda: None
+    mock_get.return_value = mock_response
 
     token = get_authenticated_token()
-    response = client.get(
-        "/movies/search?q=Batman",
-        headers={"Authorization": f"Bearer {token}"},
-    )
-    assert response.status_code == 200
-    data = response.json()
-    assert len(data["movies"]) == 1
-    assert data["movies"][0]["title"] == "Batman Begins"
-    assert data["total_results"] == 1
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Primera petición: va a la API externa
+    res1 = client.get("/movies/search?q=matrix", headers=headers)
+    assert res1.status_code == 200
+    data1 = res1.json()
+    assert len(data1["movies"]) == 1
+    assert data1["movies"][0]["title"] == "The Matrix"
+    assert mock_get.call_count == 1
+
+    # Segunda petición idéntica: debe responder desde la caché en memoria (sin llamar a la API externa)
+    res2 = client.get("/movies/search?q=matrix", headers=headers)
+    assert res2.status_code == 200
+    assert res2.json() == data1
+    assert mock_get.call_count == 1  # No aumentó el call_count!
 
 
 @patch("app.api.movies.get_movie_details", new_callable=AsyncMock)

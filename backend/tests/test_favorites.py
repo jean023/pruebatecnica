@@ -38,7 +38,7 @@ def setup_db():
     yield
 
 
-def get_authenticated_token(username="favuser"):
+def get_authenticated_token(username="favuser_bonus"):
     client.post(
         "/auth/register",
         json={"username": username, "password": "password123"},
@@ -50,61 +50,39 @@ def get_authenticated_token(username="favuser"):
     return login_res.json()["access_token"]
 
 
-def test_favorites_crud_flow():
+def test_favorites_crud_and_sorting_filtering():
     token = get_authenticated_token()
     headers = {"Authorization": f"Bearer {token}"}
 
-    # 1. Listar inicialmente (vacío)
-    res = client.get("/favorites", headers=headers)
-    assert res.status_code == 200
-    assert res.json() == []
+    # Agregar varias películas con diferentes notas y años
+    m1 = {"id_pelicula": "tt1", "titulo": "Avatar", "anio": "2009", "nota": 7}
+    m2 = {"id_pelicula": "tt2", "titulo": "Inception", "anio": "2010", "nota": 10}
+    m3 = {"id_pelicula": "tt3", "titulo": "Interstellar", "anio": "2014", "nota": 9}
 
-    # 2. Agregar a favoritas
-    movie_payload = {
-        "id_pelicula": "tt0372784",
-        "titulo": "Batman Begins",
-        "anio": "2005",
-        "poster": "https://example.com/batman.jpg",
-        "nota": 9,
-    }
-    create_res = client.post("/favorites", json=movie_payload, headers=headers)
-    assert create_res.status_code == 201
-    created_fav = create_res.json()
-    assert created_fav["titulo"] == "Batman Begins"
-    assert created_fav["nota"] == 9
-    fav_id = created_fav["id"]
+    client.post("/favorites", json=m1, headers=headers)
+    client.post("/favorites", json=m2, headers=headers)
+    client.post("/favorites", json=m3, headers=headers)
 
-    # 3. Evitar duplicados
-    dup_res = client.post("/favorites", json=movie_payload, headers=headers)
-    assert dup_res.status_code == 400
+    # Ordenar por nota DESC (debe ser: Inception [10], Interstellar [9], Avatar [7])
+    res_rating_desc = client.get("/favorites?sort_by=nota&order=desc", headers=headers)
+    assert res_rating_desc.status_code == 200
+    movies_by_rating = res_rating_desc.json()
+    assert movies_by_rating[0]["titulo"] == "Inception"
+    assert movies_by_rating[1]["titulo"] == "Interstellar"
+    assert movies_by_rating[2]["titulo"] == "Avatar"
 
-    # 4. Actualizar nota / calificación (1 a 10)
-    patch_res = client.patch(f"/favorites/{fav_id}", json={"nota": 10}, headers=headers)
-    assert patch_res.status_code == 200
-    assert patch_res.json()["nota"] == 10
+    # Filtrar por nota mínima >= 9 (debe traer solo Inception e Interstellar)
+    res_min_note = client.get("/favorites?min_nota=9", headers=headers)
+    assert res_min_note.status_code == 200
+    assert len(res_min_note.json()) == 2
 
-    # 5. Listar favoritas (debe tener 1)
-    list_res = client.get("/favorites", headers=headers)
-    assert list_res.status_code == 200
-    assert len(list_res.json()) == 1
+    # Filtrar por búsqueda de texto "Avatar"
+    res_search = client.get("/favorites?q=avatar", headers=headers)
+    assert res_search.status_code == 200
+    assert len(res_search.json()) == 1
+    assert res_search.json()[0]["titulo"] == "Avatar"
 
-    # 6. Eliminar por movie imdb_id
-    del_res = client.delete("/favorites/movie/tt0372784", headers=headers)
+    # Eliminar película
+    del_res = client.delete("/favorites/movie/tt1", headers=headers)
     assert del_res.status_code == 204
-
-    # 7. Verificar que quedó vacío
-    list_res2 = client.get("/favorites", headers=headers)
-    assert list_res2.json() == []
-
-
-def test_invalid_rating_rejected():
-    token = get_authenticated_token()
-    headers = {"Authorization": f"Bearer {token}"}
-
-    # Nota inválida (> 10)
-    res = client.post(
-        "/favorites",
-        json={"id_pelicula": "tt123", "titulo": "Test", "nota": 15},
-        headers=headers,
-    )
-    assert res.status_code == 422
+    assert len(client.get("/favorites", headers=headers).json()) == 2

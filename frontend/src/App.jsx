@@ -12,7 +12,7 @@ function App() {
     return (
       <div className="auth-container">
         <div className="auth-card" style={{ textAlign: 'center' }}>
-          <h1 className="auth-title"> MoviesTech</h1>
+          <h1 className="auth-title">MoviesTech</h1>
           <p style={{ color: '#8b949e' }}>Cargando...</p>
         </div>
       </div>

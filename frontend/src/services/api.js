@@ -55,8 +55,15 @@ export async function getMovieDetails(imdbId, token) {
   });
 }
 
-export async function getFavorites(token) {
-  return request('/favorites', {
+export async function getFavorites(token, { sortBy = 'fecha_agregado', order = 'desc', minNota = null, q = '' } = {}) {
+  const params = new URLSearchParams();
+  if (sortBy) params.append('sort_by', sortBy);
+  if (order) params.append('order', order);
+  if (minNota) params.append('min_nota', minNota.toString());
+  if (q) params.append('q', q);
+
+  const queryString = params.toString() ? `?${params.toString()}` : '';
+  return request(`/favorites${queryString}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
 }

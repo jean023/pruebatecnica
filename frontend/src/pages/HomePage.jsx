@@ -19,6 +19,7 @@ function HomePage({ user, onLogout }) {
   const [totalPages, setTotalPages] = useState(0);
   const [totalResults, setTotalResults] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
   const [hasSearched, setHasSearched] = useState(false);
 
@@ -55,10 +56,15 @@ function HomePage({ user, onLogout }) {
 
   // Buscar películas en OMDb
   const handleSearch = useCallback(
-    async (searchQuery, pageNumber = 1) => {
+    async (searchQuery, pageNumber = 1, append = false) => {
       if (!token) return;
 
-      setLoading(true);
+      if (append) {
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+        setMovies([]);
+      }
       setError(null);
       setQuery(searchQuery);
       setPage(pageNumber);
@@ -66,16 +72,28 @@ function HomePage({ user, onLogout }) {
 
       try {
         const data = await searchMovies(searchQuery, pageNumber, token);
-        setMovies(data.movies || []);
+        if (append) {
+          // Evitar duplicados si OMDb repite elementos
+          setMovies((prev) => {
+            const existingIds = new Set(prev.map((m) => m.imdb_id));
+            const newItems = (data.movies || []).filter((m) => !existingIds.has(m.imdb_id));
+            return [...prev, ...newItems];
+          });
+        } else {
+          setMovies(data.movies || []);
+        }
         setTotalPages(data.total_pages || 0);
         setTotalResults(data.total_results || 0);
       } catch (err) {
         setError(err.message);
-        setMovies([]);
-        setTotalPages(0);
-        setTotalResults(0);
+        if (!append) {
+          setMovies([]);
+          setTotalPages(0);
+          setTotalResults(0);
+        }
       } finally {
         setLoading(false);
+        setLoadingMore(false);
       }
     },
     [token]
@@ -83,8 +101,14 @@ function HomePage({ user, onLogout }) {
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages && newPage !== page) {
-      handleSearch(query, newPage);
+      handleSearch(query, newPage, false);
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleLoadMore = () => {
+    if (page < totalPages && !loadingMore) {
+      handleSearch(query, page + 1, true);
     }
   };
 
@@ -110,7 +134,7 @@ function HomePage({ user, onLogout }) {
           token
         );
         setFavorites((prev) => [newFav, ...prev]);
-        showNotification(`¡"${movie.title}" agregada a favoritas! ⭐`);
+        showNotification(`"${movie.title}" agregada a favoritas`);
       }
     } catch (err) {
       alert(`Error: ${err.message}`);
@@ -124,7 +148,7 @@ function HomePage({ user, onLogout }) {
     setFavorites((prev) =>
       prev.map((f) => (f.id === favId ? { ...f, nota: updated.nota } : f))
     );
-    showNotification(`Calificación actualizada a ${newNote}/10 ⭐`);
+    showNotification(`Calificación actualizada a ${newNote}/10`);
   };
 
   // Eliminar favorita por ID
@@ -149,7 +173,7 @@ function HomePage({ user, onLogout }) {
 
       <header className="home-header">
         <div className="header-brand">
-          <h1>🎬 MoviesTech</h1>
+          <h1>MoviesTech</h1>
         </div>
 
         <nav className="nav-tabs">
@@ -157,19 +181,19 @@ function HomePage({ user, onLogout }) {
             className={`tab-button ${activeTab === 'search' ? 'active' : ''}`}
             onClick={() => setActiveTab('search')}
           >
-            🔍 Explorar
+            Explorar
           </button>
           <button
             className={`tab-button ${activeTab === 'favorites' ? 'active' : ''}`}
             onClick={() => setActiveTab('favorites')}
           >
-            ⭐ Mis Favoritas <span className="tab-badge">{favorites.length}</span>
+            Mis Favoritas <span className="tab-badge">{favorites.length}</span>
           </button>
         </nav>
 
         <div className="home-user-info">
           <span>
-            Hola, <strong>{user.username}</strong>
+            Usuario: <strong>{user.username}</strong>
           </span>
           <button onClick={onLogout} className="logout-button">
             Cerrar sesión
@@ -185,12 +209,12 @@ function HomePage({ user, onLogout }) {
                 <h2>Explorar Películas</h2>
                 <p>Busca películas en OMDb y agrégalas a tu colección personal</p>
               </div>
-              <SearchBar onSearch={(q) => handleSearch(q, 1)} loading={loading} />
+              <SearchBar onSearch={(q) => handleSearch(q, 1, false)} loading={loading} />
             </section>
 
             {error && (
               <div className="search-error-banner">
-                <p>⚠️ {error}</p>
+                <p>{error}</p>
               </div>
             )}
 
@@ -203,17 +227,15 @@ function HomePage({ user, onLogout }) {
 
             {!loading && hasSearched && movies.length === 0 && !error && (
               <div className="empty-results-state">
-                <span style={{ fontSize: '3rem' }}>🔍</span>
                 <h3>No se encontraron resultados</h3>
-                <p>Intenta con otro título o palabra clave (ej. "Matrix", "Batman", "Spider").</p>
+                <p>Intenta con otro título o palabra clave (ej. Matrix, Batman, Spider-Man).</p>
               </div>
             )}
 
             {!loading && !hasSearched && (
               <div className="initial-search-prompt">
-                <span style={{ fontSize: '3.5rem' }}>🍿</span>
-                <h3>¿Qué te gustaría ver hoy?</h3>
-                <p>Escribe el nombre de una película en el buscador para comenzar a explorar.</p>
+                <h3>Buscador de Películas</h3>
+                <p>Escribe el nombre de una película en el buscador superior para comenzar.</p>
               </div>
             )}
 
@@ -243,24 +265,38 @@ function HomePage({ user, onLogout }) {
                 </div>
 
                 {totalPages > 1 && (
-                  <div className="pagination-wrapper">
-                    <button
-                      className="pagination-btn"
-                      disabled={page <= 1 || loading}
-                      onClick={() => handlePageChange(page - 1)}
-                    >
-                      ← Anterior
-                    </button>
-                    <span className="pagination-info">
-                      Página {page} de {totalPages}
-                    </span>
-                    <button
-                      className="pagination-btn"
-                      disabled={page >= totalPages || loading}
-                      onClick={() => handlePageChange(page + 1)}
-                    >
-                      Siguiente →
-                    </button>
+                  <div className="pagination-controls-container">
+                    {/* Botón Cargar Más */}
+                    {page < totalPages && (
+                      <button
+                        className="load-more-btn"
+                        onClick={handleLoadMore}
+                        disabled={loadingMore}
+                      >
+                        {loadingMore ? 'Cargando más películas...' : `Cargar más películas (+10 de ${totalResults})`}
+                      </button>
+                    )}
+
+                    {/* Paginación Tradicional */}
+                    <div className="pagination-wrapper">
+                      <button
+                        className="pagination-btn"
+                        disabled={page <= 1 || loading || loadingMore}
+                        onClick={() => handlePageChange(page - 1)}
+                      >
+                        ← Anterior
+                      </button>
+                      <span className="pagination-info">
+                        Página {page} de {totalPages}
+                      </span>
+                      <button
+                        className="pagination-btn"
+                        disabled={page >= totalPages || loading || loadingMore}
+                        onClick={() => handlePageChange(page + 1)}
+                      >
+                        Siguiente →
+                      </button>
+                    </div>
                   </div>
                 )}
               </section>

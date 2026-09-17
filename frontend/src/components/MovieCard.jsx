@@ -27,7 +27,6 @@ function MovieCard({
           className="movie-poster-fallback"
           style={{ display: poster ? 'none' : 'flex' }}
         >
-          <span>🎬</span>
           <span>Sin imagen</span>
         </div>
 
@@ -39,7 +38,7 @@ function MovieCard({
 
         {rating !== undefined && rating !== null && (
           <span className="movie-user-rating-badge" title={`Calificación personal: ${rating}/10`}>
-            ⭐ {rating}/10
+            Nota: {rating}/10
           </span>
         )}
       </div>
@@ -59,7 +58,7 @@ function MovieCard({
             onClick={() => onToggleFavorite(movie)}
             title={isFavorite ? 'Eliminar de favoritas' : 'Agregar a favoritas'}
           >
-            {isFavorite ? '★ En Favoritas' : '☆ Agregar a Favoritas'}
+            {isFavorite ? 'En Favoritas' : '+ Agregar a Favoritas'}
           </button>
         )}
       </div>
