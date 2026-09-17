@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     JWT_SECRET: str = "change-me"
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRATION_MINUTES: int = 30
-    OMDB_API_KEY: str = ""
+    OMDB_API_KEY: str = "2e5d578c"
 
     class Config:
         env_file = ".env"

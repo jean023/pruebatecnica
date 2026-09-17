@@ -1,158 +1,129 @@
 # 🎬 MoviesTech
 
-Plataforma web para buscar películas y gestionar una lista de favoritas con calificaciones personales.
+Plataforma web Full Stack para buscar películas a través de la API de OMDb y gestionar una colección personal de favoritas con calificaciones y notas privadas.
 
-## Arquitectura
+---
 
-Monorepo con tres capas independientes, cada una en su propio contenedor Docker:
+## 🏛️ Arquitectura
+
+Monorepo con tres capas independientes desacopladas y orquestadas con Docker Compose:
 
 ```
 Browser → React (Vite) :5173 → FastAPI (Uvicorn) :8000 → PostgreSQL :5432
+                                       ↓
+                                   OMDb API
 ```
 
-- **Frontend**: React + Vite — interfaz de usuario SPA
-- **Backend**: FastAPI + SQLAlchemy — API REST
-- **Base de datos**: PostgreSQL 16 — persistencia relacional
+- **Frontend**: React 18 + Vite — SPA interactiva con gestión de sesión y catálogo.
+- **Backend**: FastAPI + SQLAlchemy — API REST segura con autenticación JWT y cliente OMDb asíncrono.
+- **Base de datos**: PostgreSQL 16 — persistencia de usuarios y películas favoritas con integridad referencial.
 
-## Tecnologías
+---
+
+## 🛠️ Tecnologías
 
 | Capa | Tecnologías |
 |------|------------|
-| Frontend | React 18, Vite 5, JavaScript |
-| Backend | Python 3.12, FastAPI, Uvicorn, SQLAlchemy, Pydantic |
-| Base de datos | PostgreSQL 16 |
-| Infraestructura | Docker, Docker Compose |
+| **Frontend** | React 18, Vite 5, JavaScript, CSS3 |
+| **Backend** | Python 3.12+, FastAPI, Uvicorn, SQLAlchemy, Pydantic, Passlib (Bcrypt), Python-Jose (JWT), HTTPX |
+| **Base de datos** | PostgreSQL 16 |
+| **Infraestructura** | Docker, Docker Compose |
 
-## Estructura de carpetas
+---
 
-```
+## 📁 Estructura del Proyecto
+
+```text
 moviestech/
 ├── backend/
 │   ├── app/
-│   │   ├── api/          # Routers / endpoints
-│   │   ├── core/         # Configuración (Pydantic Settings)
-│   │   ├── db/           # Conexión SQLAlchemy
-│   │   ├── models/       # Modelos ORM
+│   │   ├── api/          # Routers (auth, movies, favorites, health)
+│   │   ├── core/         # Configuración y módulo de seguridad (JWT + bcrypt)
+│   │   ├── db/           # Conexión y sesión SQLAlchemy
+│   │   ├── models/       # Modelos ORM (User, Favorite)
 │   │   ├── schemas/      # Schemas Pydantic (request/response)
-│   │   ├── services/     # Lógica de negocio
-│   │   └── main.py       # Punto de entrada FastAPI
-│   ├── tests/            # Tests
+│   │   ├── services/     # Lógica de negocio (auth, omdb, favorites)
+│   │   └── main.py       # Punto de entrada FastAPI + CORS + Routers
+│   ├── tests/            # Tests unitarios y de integración
 │   ├── requirements.txt
 │   ├── Dockerfile
 │   └── .env.example
 │
 ├── frontend/
 │   ├── src/
-│   │   ├── components/   # Componentes React reutilizables
-│   │   ├── pages/        # Vistas / páginas
-│   │   ├── services/     # Llamadas HTTP al backend
-│   │   ├── hooks/        # Custom hooks
-│   │   ├── App.jsx       # Componente raíz
-│   │   └── main.jsx      # Punto de entrada
+│   │   ├── components/   # SearchBar, MovieCard, FavoritesView
+│   │   ├── hooks/        # useAuth (gestión de sesión)
+│   │   ├── pages/        # LoginPage, RegisterPage, HomePage
+│   │   ├── services/     # api.js (cliente HTTP centralizado)
+│   │   ├── App.jsx       # Componente raíz con enrutamiento condicional
+│   │   ├── index.css     # Estilos modo oscuro
+│   │   └── main.jsx
 │   ├── package.json
-│   ├── vite.config.js
+│   ├── vite.config.js     # Proxy de desarrollo
 │   ├── Dockerfile
 │   └── .env.example
 │
 ├── database/
-│   └── schema.sql        # DDL para crear tablas
+│   └── schema.sql        # DDL para inicialización de PostgreSQL
 │
 ├── docker-compose.yml
 ├── .gitignore
 └── README.md
 ```
 
-## Requisitos
+---
 
-- [Docker](https://docs.docker.com/get-docker/) y Docker Compose
-- Git
+## ⚙️ Configuración y Variables de Entorno
 
-Para desarrollo local sin Docker:
-- Python 3.12+
-- Node.js 20+
-- PostgreSQL 16
-
-## Variables de entorno
-
-Copia los archivos de ejemplo y ajusta los valores:
-
-```bash
-cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env
-```
+Puedes configurar tus variables en los archivos `.env`:
 
 ### Backend (`backend/.env`)
 
-| Variable | Descripción |
-|----------|-------------|
-| `DATABASE_URL` | URL de conexión a PostgreSQL |
-| `JWT_SECRET` | Secreto para tokens JWT *(fase futura)* |
-| `JWT_ALGORITHM` | Algoritmo JWT *(fase futura)* |
-| `JWT_EXPIRATION_MINUTES` | Expiración del token *(fase futura)* |
-| `OMDB_API_KEY` | API key de OMDb *(fase futura)* |
+```env
+DATABASE_URL=postgresql://moviestech_user:moviestech_pass@db:5432/moviestech
+JWT_SECRET=dev_jwt_secret_key_moviestech_2026
+JWT_ALGORITHM=HS256
+JWT_EXPIRATION_MINUTES=60
+OMDB_API_KEY=2e5d578c
+```
 
-### Frontend (`frontend/.env`)
+---
 
-| Variable | Descripción |
-|----------|-------------|
-| `VITE_API_URL` | URL base del backend |
-| `VITE_OMDB_API_KEY` | API key de OMDb *(fase futura)* |
+## 🚀 Cómo Ejecutar con Docker
 
-## Ejecutar con Docker
+1. Inicia **Docker Desktop** en tu equipo.
+2. Construye y levanta los servicios:
 
 ```bash
 docker compose up --build
 ```
 
-Esto levanta tres servicios:
+3. Accede a los servicios:
 
-| Servicio | Puerto | Descripción |
-|----------|--------|-------------|
-| `frontend` | [http://localhost:5173](http://localhost:5173) | Aplicación React |
-| `backend` | [http://localhost:8000](http://localhost:8000) | API FastAPI |
-| `db` | `localhost:5432` | PostgreSQL |
+| Servicio | URL | Descripción |
+|----------|-----|-------------|
+| **Frontend** | [http://localhost:5173](http://localhost:5173) | Aplicación web React |
+| **API Docs (Swagger)** | [http://localhost:8000/docs](http://localhost:8000/docs) | Documentación interactiva de la API |
+| **Backend Health** | [http://localhost:8000/health](http://localhost:8000/health) | Chequeo de estado |
+| **PostgreSQL** | `localhost:5432` | Base de datos |
 
-Para detener:
+Para detener los contenedores:
 
 ```bash
 docker compose down
 ```
 
-Para eliminar también los datos de PostgreSQL:
+---
 
-```bash
-docker compose down -v
-```
+## ✨ Funcionalidades Implementadas
 
-## Puertos
-
-| Puerto | Servicio |
-|--------|----------|
-| 5173 | Frontend (Vite dev server) |
-| 8000 | Backend (Uvicorn) |
-| 5432 | PostgreSQL |
-
-## Verificar funcionamiento
-
-1. **Backend**: Abrir [http://localhost:8000](http://localhost:8000) — debe responder `{"status": "ok", "project": "MoviesTech", "version": "0.1.0"}`
-2. **Health check**: Abrir [http://localhost:8000/health](http://localhost:8000/health) — debe responder `{"status": "healthy"}`
-3. **Frontend**: Abrir [http://localhost:5173](http://localhost:5173) — debe mostrar el estado de conexión con el backend
-4. **Base de datos**: Las tablas `users` y `favoritas` se crean automáticamente al iniciar el contenedor
-
-## Estado actual
-
-- [x] Estructura del proyecto
-- [x] Configuración FastAPI con health check
-- [x] Configuración React + Vite
-- [x] Modelos SQLAlchemy (User, Favorite)
-- [x] Esquema SQL (users, favoritas)
-- [x] Docker Compose (frontend, backend, postgres)
-- [x] Variables de entorno
-- [x] `.gitignore`
-
-## Próximas funcionalidades
-
-- Autenticación de usuarios (registro/login con JWT + bcrypt)
-- Integración con API de OMDb para búsqueda de películas
-- CRUD de películas favoritas con calificación personal
-- Protección de rutas en frontend y backend
+- [x] **Autenticación Completa**: Registro y login con contraseñas encriptadas (`bcrypt`) y tokens `JWT`.
+- [x] **Buscador de Películas**: Búsqueda en tiempo real conectada a la API oficial de OMDb con paginación de resultados.
+- [x] **Catálogo Visual**: Tarjetas interactivas con pósters, año, ID de IMDb y badge de tipo.
+- [x] **CRUD de Favoritas**:
+  - Agregar películas a tu colección personal con 1 clic.
+  - Listar tus películas favoritas en una vista dedicada.
+  - Asignar y editar tu calificación personal del **1 al 10**.
+  - Eliminar películas de favoritas.
+- [x] **Protección de Rutas**: Endpoints asegurados que validan el token de autorización del usuario.
+- [x] **Tests Automatizados**: Cobertura de tests unitarios para autenticación, búsqueda y favoritas en `backend/tests/`.

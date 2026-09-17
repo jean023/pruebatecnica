@@ -1,8 +1,13 @@
-function MovieCard({ movie, onSelect, isFavorite = false, onToggleFavorite }) {
+function MovieCard({
+  movie,
+  isFavorite = false,
+  onToggleFavorite,
+  rating,
+}) {
   const { title, year, poster, type, imdb_id } = movie;
 
   return (
-    <div className="movie-card">
+    <div className={`movie-card ${isFavorite ? 'is-fav' : ''}`}>
       <div className="movie-poster-wrapper">
         {poster ? (
           <img
@@ -12,7 +17,9 @@ function MovieCard({ movie, onSelect, isFavorite = false, onToggleFavorite }) {
             loading="lazy"
             onError={(e) => {
               e.target.style.display = 'none';
-              e.target.nextSibling.style.display = 'flex';
+              if (e.target.nextSibling) {
+                e.target.nextSibling.style.display = 'flex';
+              }
             }}
           />
         ) : null}
@@ -27,6 +34,12 @@ function MovieCard({ movie, onSelect, isFavorite = false, onToggleFavorite }) {
         {type && (
           <span className="movie-type-badge">
             {type.toUpperCase()}
+          </span>
+        )}
+
+        {rating !== undefined && rating !== null && (
+          <span className="movie-user-rating-badge" title={`Calificación personal: ${rating}/10`}>
+            ⭐ {rating}/10
           </span>
         )}
       </div>
@@ -46,7 +59,7 @@ function MovieCard({ movie, onSelect, isFavorite = false, onToggleFavorite }) {
             onClick={() => onToggleFavorite(movie)}
             title={isFavorite ? 'Eliminar de favoritas' : 'Agregar a favoritas'}
           >
-            {isFavorite ? '★ En Favoritas' : '☆ Favorita'}
+            {isFavorite ? '★ En Favoritas' : '☆ Agregar a Favoritas'}
           </button>
         )}
       </div>

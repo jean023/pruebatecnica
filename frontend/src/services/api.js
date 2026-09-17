@@ -6,6 +6,9 @@ async function request(endpoint, options = {}) {
     const data = await response.json().catch(() => ({}));
     throw new Error(data.detail || `Error ${response.status}: ${response.statusText}`);
   }
+  if (response.status === 204) {
+    return null;
+  }
   return response.json();
 }
 
@@ -48,6 +51,48 @@ export async function searchMovies(query, page = 1, token) {
 
 export async function getMovieDetails(imdbId, token) {
   return request(`/movies/${imdbId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function getFavorites(token) {
+  return request('/favorites', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function addFavorite(movieData, token) {
+  return request('/favorites', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(movieData),
+  });
+}
+
+export async function updateFavoriteNote(favoriteId, note, token) {
+  return request(`/favorites/${favoriteId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ nota: note }),
+  });
+}
+
+export async function removeFavorite(favoriteId, token) {
+  return request(`/favorites/${favoriteId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+export async function removeFavoriteByMovieId(imdbId, token) {
+  return request(`/favorites/movie/${imdbId}`, {
+    method: 'DELETE',
     headers: { Authorization: `Bearer ${token}` },
   });
 }
