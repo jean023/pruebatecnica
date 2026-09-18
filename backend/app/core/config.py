@@ -1,22 +1,24 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "MoviesTech"
     VERSION: str = "0.1.0"
 
-    DATABASE_URL: str = "postgresql://moviestech_user:moviestech_pass@db:5432/moviestech"
+    DATABASE_URL: str
+    CORS_ORIGINS: list[str]
 
-    CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://frontend:5173"]
+    JWT_SECRET: str
+    JWT_ALGORITHM: str
+    JWT_EXPIRATION_MINUTES: int
 
-    # para fases futuras
-    JWT_SECRET: str = "change-me"
-    JWT_ALGORITHM: str = "HS256"
-    JWT_EXPIRATION_MINUTES: int = 30
-    OMDB_API_KEY: str = "2e5d578c"
+    OMDB_API_KEY: str
 
-    class Config:
-        env_file = ".env"
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
 
 
 settings = Settings()
