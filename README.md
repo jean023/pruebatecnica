@@ -38,7 +38,7 @@ moviestech/
 │   ├── tests/            # Tests
 │   ├── requirements.txt
 │   ├── Dockerfile
-│   └── .env.example
+│   └── .env
 │
 ├── frontend/
 │   ├── src/
@@ -51,7 +51,7 @@ moviestech/
 │   ├── package.json
 │   ├── vite.config.js
 │   ├── Dockerfile
-│   └── .env.example
+│ 
 │
 ├── database/
 │   └── schema.sql        # DDL para crear tablas
@@ -77,7 +77,6 @@ Copiar los archivos de ejemplo y ajustar los valores:
 
 ```bash
 cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env
 ```
 
 # Backend (`backend/.env`)
@@ -85,12 +84,12 @@ cp frontend/.env.example frontend/.env
 | Variable | Descripción |
 |----------|-------------|
 | `DATABASE_URL` | URL de conexión a PostgreSQL |
-| `JWT_SECRET` | Secreto para tokens JWT *(fase futura)* |
+| `JWT_SECRET` | Secreto para tokens JWT *(fase futura)* | 
 | `JWT_ALGORITHM` | Algoritmo JWT *(fase futura)* |
 | `JWT_EXPIRATION_MINUTES` | Expiración del token *(fase futura)* |
 | `OMDB_API_KEY` | API key de OMDb *(fase futura)* |
 
-# Frontend (`frontend/.env`)
+# Frontend (`backend/.env`)
 
 | Variable | Descripción |
 |----------|-------------|
@@ -123,7 +122,7 @@ Para eliminar también los datos de PostgreSQL:
 docker compose down -v
 ```
 
-## Puertos
+# Puertos
 
 | Puerto | Servicio |
 |--------|----------|
@@ -131,21 +130,15 @@ docker compose down -v
 | 8000 | Backend (Uvicorn) |
 | 5432 | PostgreSQL |
 
-## Verificar funcionamiento
+# Verificar funcionamiento
 
 1. **Backend**: Abrir [http://localhost:8000](http://localhost:8000) — debe responder `{"status": "ok", "project": "MoviesTech", "version": "0.1.0"}`
 2. **Health check**: Abrir [http://localhost:8000/health](http://localhost:8000/health) — debe responder `{"status": "healthy"}`
 3. **Frontend**: Abrir [http://localhost:5173](http://localhost:5173) — debe mostrar el estado de conexión con el backend
 4. **Base de datos**: Las tablas `users` y `favoritas` se crean automáticamente al iniciar el contenedor
 
-## Estado actual
+# al clonar , usar .env en " /backend " y buildear el docker compose  con:
 
-- [x] Estructura del proyecto
-- [x] Configuración FastAPI con health check
-- [x] Configuración React + Vite
-- [x] Modelos SQLAlchemy (User, Favorite)
-- [x] Esquema SQL (users, favoritas)
-- [x] Docker Compose (frontend, backend, postgres)
-- [x] Variables de entorno
-- [x] `.gitignore`
+docker compose up --build
+
 

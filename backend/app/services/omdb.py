@@ -9,7 +9,7 @@ from app.schemas.movie import MovieDetail, MovieItem, MovieSearchResponse
 OMDB_API_BASE = "https://www.omdbapi.com/"
 CACHE_TTL_SECONDS = 1800  # 30 minutos de caché
 
-# Caché en memoria: { cache_key: (timestamp, data) }
+# Caché en memoria { cache_key: (timestamp, data) }
 _search_cache: dict[str, tuple[float, MovieSearchResponse]] = {}
 _detail_cache: dict[str, tuple[float, MovieDetail]] = {}
 
