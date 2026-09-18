@@ -9,7 +9,7 @@ class Settings(BaseSettings):
 
     CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://frontend:5173"]
 
-    # Placeholders para fases futuras
+    # para fases futuras
     JWT_SECRET: str = "change-me"
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRATION_MINUTES: int = 30
