@@ -140,5 +140,28 @@ docker compose down -v
 # al clonar , usar .env en " /backend " y buildear el docker compose  con:
 
 docker compose up --build
+ env:  (para futuros ejemplos) 
 
+#aplication
+PROJECT_NAME=MoviesTech
+VERSION=0.1.0
 
+# CORS
+CORS_ORIGINS=["http://localhost:5173","http://frontend:5173"] #ejemplo
+
+# Database
+DATABASE_URL=postgresql://moviestech_user:moviestech_pass@db:5432/moviestech
+POSTGRES_USER= moviestech_user
+POSTGRES_PASSWORD= moviestech_pass
+POSTGRES_DB= moviestech
+
+# JWT
+JWT_SECRET=dev_jwt_secret_key_moviestech_2026
+JWT_ALGORITHM=HS256
+JWT_EXPIRATION_MINUTES=60
+
+# OMDb
+OMDB_API_KEY=2e5d578c #el api
+
+#Vite
+VITE_API_URL=  http://localhost:8000
